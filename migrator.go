@@ -59,6 +59,28 @@ func (m *migrator) dumpFailed(file string) error {
 	return nil
 }
 
+func (m *migrator) verify(key string) error {
+	if key == "" {
+		return nil
+	}
+
+	newKey, err := m.transformer.Transform(key)
+	if err != nil {
+		return err
+	}
+
+	result, err := m.dst.Exists(newKey).Result()
+	if err != nil {
+		return err
+	}
+
+	if result != 1 {
+		return fmt.Errorf("key doesn't exist: %s", newKey)
+	}
+
+	return nil
+}
+
 func (m *migrator) migrate(key string) error {
 	if key == "" {
 		return nil
@@ -76,6 +98,14 @@ func (m *migrator) migrate(key string) error {
 		ttl, err = m.src.PTTL(key).Result()
 		if err != nil && err != redis.Nil {
 			return err
+		}
+		// PTTL returns -2 if the key does not exist
+		if err == redis.Nil || ttl == time.Duration(-2)*time.Millisecond {
+			return nil
+		}
+		// PTTL returns -1 if the key exists but has no associated expire
+		if ttl == time.Duration(-1)*time.Millisecond {
+			ttl = 0
 		}
 	}
 
@@ -95,7 +125,7 @@ func (m *migrator) migrate(key string) error {
 	return nil
 }
 
-func (m *migrator) Start(parentWg *sync.WaitGroup) {
+func (m *migrator) Start(parentWg *sync.WaitGroup, verify bool) {
 
 	defer parentWg.Done()
 
@@ -123,7 +153,12 @@ func (m *migrator) Start(parentWg *sync.WaitGroup) {
 					return
 				}
 				key := iter.Val()
-				err := m.migrate(key)
+				var err error
+				if verify {
+					err = m.verify(key)
+				} else {
+					err = m.migrate(key)
+				}
 				if m.bar != nil {
 					m.bar.Add64(1)
 				}

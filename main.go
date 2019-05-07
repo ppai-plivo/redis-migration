@@ -13,6 +13,7 @@ func main() {
 
 	srcAddr := flag.String("src", "", "Address of source redis (non-clustered): Example: redis-nonclusterdev.example.com:6379")
 	dstAddr := flag.String("dst", "", "Address of destination redis (clustered): Example: redis-clusterdev.example.com:6379")
+	verify := flag.Bool("verify", false, "Verify keys after migration")
 	flag.Parse()
 
 	if *srcAddr == "" || *dstAddr == "" {
@@ -27,7 +28,7 @@ func main() {
 	wg := new(sync.WaitGroup)
 	wg.Add(1)
 
-	go m.Start(wg)
+	go m.Start(wg, *verify)
 
 	go func() {
 		sigCh := make(chan os.Signal)
