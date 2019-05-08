@@ -49,4 +49,6 @@ func main() {
 			fmt.Println("Failed keys written to failed.keys file")
 		}
 	}
+
+	m.migrateDiff()
 }

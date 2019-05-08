@@ -31,6 +31,17 @@ type migrator struct {
 	failedKeys      []string
 }
 
+func (m *migrator) migrateDiff() error {
+	log.Printf("Migrating diff of %d keys\n", len(m.failedKeys))
+	for _, key := range m.failedKeys {
+		log.Printf("Migrating key %s \n", key)
+		if err := m.migrate(key); err != nil {
+			log.Printf("Migration failed for key %s: %s", key, err.Error())
+		}
+	}
+	return nil
+}
+
 func (m *migrator) dumpFailed(file string) error {
 
 	if len(m.failedKeys) == 0 {
