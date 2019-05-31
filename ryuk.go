@@ -41,5 +41,25 @@ func (t *ratelimitTransformer) Pattern() string {
 }
 
 func (t *ratelimitTransformer) Transform(key string) (string, error) {
-	return key, nil
+	// sms_rate_limit:MPS:LC:US_CANADA:US_CANADA
+
+	l := strings.Split(key, ":")
+	if len(l) != 5 {
+		return "", fmt.Errorf("malformed sms_rate_limit key %s", key)
+	}
+
+	var b strings.Builder
+	b.WriteString(l[0]) // sms_rate_limit
+	b.WriteString(":")
+	b.WriteString(l[1]) // MPS/MPD/UDNPD
+	b.WriteString(":")
+	b.WriteString("{")
+	b.WriteString(l[2]) // LC/TF/SC
+	b.WriteString(":")
+	b.WriteString(l[3]) // US_CANADA
+	b.WriteString(":")
+	b.WriteString(l[4]) // US_CANADA
+	b.WriteString("}")
+
+	return b.String(), nil
 }
