@@ -217,9 +217,11 @@ func NewMigrator(srcAddr, dstAddr string) (*migrator, error) {
 	}
 
 	// transformer := new(dndTransformer)
-	transformer := new(smsprefixTransformer)
-	//transformer := new(numbersTransformer)
-	//transformer = new(sandboxTransformer)
+	// transformer := new(smsprefixTransformer)
+	// transformer := new(numbersTransformer)
+	// transformer := new(sandboxTransformer)
+	transformer := new(senderidTransformer)
+	// transformer := new(ratelimitTransformer)
 
 	// this is a bad idea, to use keys command which is blocking
 	// putting it in lua script makes it slightly less bad :/
